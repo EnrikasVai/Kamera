@@ -2,7 +2,9 @@ package com.example.kamera
 
 import android.Manifest
 import android.content.ContentValues
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
@@ -11,7 +13,6 @@ import androidx.camera.core.ImageCapture
 import androidx.camera.video.Recorder
 import androidx.camera.video.Recording
 import androidx.camera.video.VideoCapture
-import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -98,11 +99,13 @@ class MainActivity : AppCompatActivity() {
                     Log.e(TAG, "Photo capture failed: ${exc.message}", exc)
                 }
 
-                override fun
-                        onImageSaved(output: ImageCapture.OutputFileResults){
+                override fun onImageSaved(output: ImageCapture.OutputFileResults) {
                     val msg = "Photo capture succeeded: ${output.savedUri}"
                     Toast.makeText(baseContext, msg, Toast.LENGTH_SHORT).show()
                     Log.d(TAG, msg)
+
+                    // Call a function to send the photo by email
+                    sendPhotoByEmail(output.savedUri)
                 }
             }
         )
@@ -296,6 +299,21 @@ class MainActivity : AppCompatActivity() {
 
             image.close()
         }
+    }
+    private fun sendPhotoByEmail(photoUri: Uri?) {
+        // Check if the photo URI is not null
+        photoUri ?: return
+
+        // Create an intent with ACTION_SEND
+        val emailIntent = Intent(Intent.ACTION_SEND).apply {
+            type = "image/jpeg" // Set the MIME type for the email attachment
+            putExtra(Intent.EXTRA_SUBJECT, "Subject") // Set the email subject
+            putExtra(Intent.EXTRA_TEXT, "Body") // Set the email body text
+            putExtra(Intent.EXTRA_STREAM, photoUri) // Attach the photo URI
+        }
+
+        // Start the email intent
+        startActivity(Intent.createChooser(emailIntent, "Send email..."))
     }
 
 
